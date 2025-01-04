@@ -29,6 +29,15 @@ android {
     namespace "it.aesys.flutter_cast_video"
     compileSdkVersion 31
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlin {
+        jvmToolchain(17)
+    }
+
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
