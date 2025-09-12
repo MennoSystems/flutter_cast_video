@@ -7,10 +7,10 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.PluginRegistry.Registrar
 
 /** FlutterVideoCastPlugin */
-public class FlutterVideoCastPlugin: FlutterPlugin, ActivityAware {
+class FlutterVideoCastPlugin: FlutterPlugin, ActivityAware {
   private lateinit var chromeCastFactory: ChromeCastFactory
 
-  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+  override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     chromeCastFactory = ChromeCastFactory(flutterPluginBinding.binaryMessenger)
     flutterPluginBinding
             .platformViewRegistry
@@ -41,7 +41,7 @@ public class FlutterVideoCastPlugin: FlutterPlugin, ActivityAware {
     }
   }
 
-  override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+  override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     
   }
 

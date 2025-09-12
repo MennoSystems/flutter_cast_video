@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cast_video/src/chrome_cast/chrome_cast_event.dart';
 import 'package:flutter_cast_video/src/chrome_cast/chrome_cast_platform.dart';
@@ -14,9 +16,7 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
   final Map<int, MethodChannel?> _channels = {};
 
   /// Accesses the MethodChannel associated to the passed id.
-  MethodChannel? channel(int? id) {
-    return _channels[id!];
-  }
+  MethodChannel? channel(int? id) => _channels[id!];
 
   // The controller we need to broadcast the different events coming
   // from handleMethodCall.
@@ -76,7 +76,9 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
   }
 
   @override
-  Future<void> loadMedia(String url, String title, String subtitle, String image, {bool? live, required int id}) {
+  Future<void> loadMedia(
+      String url, String title, String subtitle, String image,
+      {bool? live, required int id}) {
     final Map<String, dynamic> args = {
       'url': url,
       'title': title,
@@ -113,8 +115,9 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
   }
 
   @override
-  Future<Map<dynamic,dynamic>?> getMediaInfo({required int id}) async {
-    return (await channel(id)!.invokeMethod<Map<dynamic,dynamic>?>('chromeCast#getMediaInfo'));
+  Future<Map<dynamic, dynamic>?> getMediaInfo({required int id}) async {
+    return (await channel(id)!
+        .invokeMethod<Map<dynamic, dynamic>?>('chromeCast#getMediaInfo'));
   }
 
   @override
@@ -135,7 +138,9 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
 
   @override
   Future<void> endSession({required int id}) {
-    return channel(id)!.invokeMethod<void>('chromeCast#endSession');
+    channel(id)!.invokeMethod<void>('chromeCast#endSession');
+    _channels.remove(id);
+    return Future(() => null);
   }
 
   @override
@@ -160,6 +165,9 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
   }
 
   Future<dynamic> _handleMethodCall(MethodCall call, int id) async {
+    // only start session for the last value
+    if (_channels.keys.last != id) return;
+
     switch (call.method) {
       case 'chromeCast#didStartSession':
         _eventStreamController.add(SessionStartedEvent(id));
@@ -176,11 +184,9 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
         break;
       case 'chromeCast#didPlayerStatusUpdated':
         var arg = 0;
-        if(call.arguments is int?)
-          arg = call.arguments ?? 0;
+        if (call.arguments is int?) arg = call.arguments ?? 0;
 
-        _eventStreamController
-            .add(PlayerStatusDidUpdatedEvent(id, arg));
+        _eventStreamController.add(PlayerStatusDidUpdatedEvent(id, arg));
         break;
       default:
         throw MissingPluginException();
@@ -196,6 +202,45 @@ class MethodChannelChromeCast extends ChromeCastPlatform {
         onPlatformViewCreated: onPlatformViewCreated,
         creationParams: arguments,
         creationParamsCodec: const StandardMessageCodec(),
+      );
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return UiKitView(
+        viewType: 'ChromeCastButton',
+        onPlatformViewCreated: onPlatformViewCreated,
+        creationParams: arguments,
+        creationParamsCodec: const StandardMessageCodec(),
+      );
+    }
+    return Text('$defaultTargetPlatform is not supported by ChromeCast plugin');
+  }
+
+  @override
+  Widget buildViewHybrid(Map<String, dynamic> arguments,
+      PlatformViewCreatedCallback onPlatformViewCreated) {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return PlatformViewLink(
+        viewType: 'ChromeCastButton',
+        surfaceFactory: (context, controller) {
+          return AndroidViewSurface(
+            controller: controller as AndroidViewController,
+            gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{},
+            hitTestBehavior: PlatformViewHitTestBehavior.opaque,
+          );
+        },
+        onCreatePlatformView: (params) {
+          return PlatformViewsService.initExpensiveAndroidView(
+            id: params.id,
+            viewType: params.viewType,
+            creationParams: arguments,
+            creationParamsCodec: const StandardMessageCodec(),
+            layoutDirection: TextDirection.ltr,
+            onFocus: () => params.onFocusChanged(true),
+          )
+            ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
+            ..addOnPlatformViewCreatedListener(onPlatformViewCreated)
+            ..create();
+        },
       );
     }
     if (defaultTargetPlatform == TargetPlatform.iOS) {

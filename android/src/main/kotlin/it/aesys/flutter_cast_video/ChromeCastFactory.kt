@@ -17,6 +17,6 @@ class ChromeCastFactory(private val binaryMessenger: BinaryMessenger) : Platform
     ): PlatformView = ChromeCastController(
             messenger = binaryMessenger,
             viewId = viewId,
-            context = activity
+            context = context
     )
 }
