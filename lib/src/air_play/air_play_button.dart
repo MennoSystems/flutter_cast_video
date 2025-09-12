@@ -35,14 +35,14 @@ class AirPlayButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> args = {
-      'red': color.red,
-      'green': color.green,
-      'blue': color.blue,
-      'alpha': color.alpha,
-      'activeRed': activeColor.red,
-      'activeGreen': activeColor.green,
-      'activeBlue': activeColor.blue,
-      'activeAlpha': activeColor.alpha,
+      'red': (color.r * 255.0).round(),
+      'green': (color.g * 255.0).round(),
+      'blue': (color.b * 255.0).round(),
+      'alpha': (color.a * 255.0).round(),
+      'activeRed': (activeColor.r * 255.0).round(),
+      'activeGreen': (activeColor.g * 255.0).round(),
+      'activeBlue': (activeColor.b * 255.0).round(),
+      'activeAlpha': (activeColor.a * 255.0).round(),
     };
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       return SizedBox(

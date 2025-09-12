@@ -60,10 +60,10 @@ class ChromeCastButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> args = {
-      'red': color.red,
-      'green': color.green,
-      'blue': color.blue,
-      'alpha': color.alpha
+      'red': (color.r * 255.0).round(),
+      'green': (color.g * 255.0).round(),
+      'blue': (color.b * 255.0).round(),
+      'alpha': (color.a * 255.0).round()
     };
     return SizedBox(
       width: size,
